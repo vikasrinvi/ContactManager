@@ -7,9 +7,10 @@ use App\Models\Contact;
 
 class ContactRepository implements ContactRepositoryInterface
 {
-    public function getAll()
+    public function getAll($perPage = 10)
     {
-        return Contact::all();
+
+        return Contact::paginate($perPage);
     }
 
     public function findById($id)
@@ -32,6 +33,21 @@ class ContactRepository implements ContactRepositoryInterface
     public function delete($id)
     {
         return Contact::destroy($id);
+    }
+
+    public function bulkInsert($name, $phone)
+    {
+        // Check if contact already exists
+        $exists = Contact::where('phone_number', $phone)->exists();
+        if ($exists) {
+            return false;
+        }
+
+        $contact = new Contact();
+        $contact->name = $name;
+        $contact->phone_number = $phone;
+        $contact->save(); 
+        return true;
     }
 }
 

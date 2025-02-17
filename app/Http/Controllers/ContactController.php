@@ -23,12 +23,12 @@ class ContactController extends Controller
     public function store(Request $request)
     {
         $this->contactService->createContact($request->all());
-        return redirect()->route('contacts.index')->with('success', 'Contact added successfully.');
+        return redirect()->route('dashboard')->with('success', 'Contact added successfully.');
     }
 
     public function destroy($id)
     {
         $this->contactService->deleteContact($id);
-        return redirect()->route('contacts.index')->with('success', 'Contact deleted successfully.');
+        return redirect()->route('dashboard')->with('success', 'Contact deleted successfully.');
     }
 }

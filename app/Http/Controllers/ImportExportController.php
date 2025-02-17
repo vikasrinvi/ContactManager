@@ -24,13 +24,11 @@ class ImportExportController extends Controller
     public function importXML(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'xml_file' => 'required|mimes:xml|max:2048',
+            'file' => 'required|mimes:xml|max:2048',
         ]);
-
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
         }
-
-        return $this->importExportService->importXML($request->file('xml_file'));
+        return $this->importExportService->importXML($request->file('file'));
     }
 }

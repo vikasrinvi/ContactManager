@@ -2,72 +2,120 @@
 
 @section('content')
 
-<div class="container mt-5">
-    <h2 class="mb-4">Contact Manager</h2>
+<div class="max-w-6xl mx-auto p-6">
+    <h2 class="text-2xl font-semibold text-center mb-6">Contact Manager</h2>
 
+    {{-- Success and Error Messages --}}
     @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            {{ session('success') }}
+        </div>
+    @endif
+    @if(session('errors'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            {{ session('errors') }}
+        </div>
     @endif
 
-    <div class="card p-4 mb-3">
-        <h4>Add New Contact</h4>
-        <form action="{{ route('contacts.store') }}" method="POST">
-            @csrf
-            <div class="row g-2">
-                <div class="col-md-4">
-                    <input type="text" name="first_name" class="form-control" placeholder="First Name" required>
-                </div>
-                <div class="col-md-4">
-                    <input type="text" name="last_name" class="form-control" placeholder="Last Name">
-                </div>
-                <div class="col-md-4">
-                    <input type="text" name="phone_number" class="form-control" placeholder="Phone Number" required>
-                </div>
+    {{-- Failed Records (Scrollable) --}}
+    @if(session('failed_records') && count(session('failed_records')) > 0)
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 max-w-xl mx-auto">
+            <h3 class="text-lg font-semibold mb-2">Failed Records:</h3>
+
+            <!-- Fixed max height of 210px, scrollable inside -->
+            <div class="max-h-[210px] overflow-y-auto border border-red-300 rounded p-2 bg-red-50" style="max-height: 210px;">
+                <ul class="space-y-2">
+                    @foreach(session('failed_records') as $failedRecord)
+                        <li class="p-2 border border-red-300 rounded bg-white">
+                            <p><strong class="text-red-600">Name:</strong> {{ $failedRecord['contact']['name'] ?? 'N/A' }}</p>
+                            <p><strong class="text-red-600">Phone:</strong> {{ $failedRecord['contact']['phone'] ?? 'N/A' }}</p>
+                            <p><strong class="text-red-600">Error:</strong> {{ $failedRecord['error'] ?? 'Unknown error' }}</p>
+                        </li>
+                    @endforeach
+                </ul>
             </div>
-            <button type="submit" class="btn btn-primary mt-3">Add Contact</button>
-        </form>
+        </div>
+    @endif
+
+
+
+
+
+
+
+    {{-- Import & Export Contacts --}}
+    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h4 class="text-lg font-semibold mb-4">Import & Export Contacts</h4>
+        <div class="flex flex-wrap gap-4 items-center">
+            <form action="{{ route('contacts.import.xml') }}" method="POST" enctype="multipart/form-data" class="flex items-center gap-2">
+                @csrf
+                <input type="file" name="file" class="border border-gray-300 rounded-md p-2 w-full md:w-auto" accept=".xml" required>
+                <button type="submit" class="bg-gray-500 text-black py-2 px-4 rounded-md hover:bg-gray-700 transition">
+                    Import XML
+                </button>
+            </form>
+
+            <a href="{{ route('contacts.export.xml') }}" class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition">
+                Download Sample XML
+            </a>
+        </div>
     </div>
 
-    <div class="card p-4">
-        <h4>Contact List</h4>
-        <table class="table table-bordered mt-3">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Phone Number</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($contacts as $contact)
-                    <tr>
-                        <td>{{ $contact->id }}</td>
-                        <td>{{ $contact->first_name }} {{ $contact->last_name }}</td>
-                        <td>{{ $contact->phone_number }}</td>
-                        <td>
-                            <form action="{{ route('contacts.destroy', $contact->id) }}" method="POST">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
-                            </form>
-                        </td>
+    {{-- Contact List Table --}}
+    <div class="bg-white shadow-md rounded-lg p-6">
+        <h4 class="text-lg font-semibold mb-4">Contact List</h4>
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse border border-gray-200">
+                <thead class="bg-gray-100">
+                    <tr class="text-left">
+                        <th class="border border-gray-300 px-4 py-2">ID</th>
+                        <th class="border border-gray-300 px-4 py-2">Name</th>
+                        <th class="border border-gray-300 px-4 py-2">Phone Number</th>
+                        <th class="border border-gray-300 px-4 py-2 text-center">Actions</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach($contacts as $contact)
+                        <tr class="border-t hover:bg-gray-50">
+                            <td class="border border-gray-300 px-4 py-2">{{ $contact->id }}</td>
+                            <td class="border border-gray-300 px-4 py-2">{{ $contact->first_name }} {{ $contact->last_name }}</td>
+                            <td class="border border-gray-300 px-4 py-2">{{ $contact->phone_number }}</td>
+                            <td class="border border-gray-300 px-4 py-2 text-center">
+                                <form action="{{ route('contacts.destroy', $contact->id) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+                                        onclick="return confirm('Are you sure?')">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        <!-- Pagination Links -->
+        <div class="mt-4">
+            {{ $contacts->links() }}
+        </div>
     </div>
 
-    <div class="card p-4 mt-3">
-        <h4>Import & Export Contacts</h4>
-        <form action="{{ route('contacts.import.xml') }}" method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-3">
+        {{-- Add Contact Form --}}
+    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h4 class="text-lg font-semibold mb-4">Add New Contact</h4>
+        <form action="{{ route('contacts.store') }}" method="POST" class="flex flex-wrap gap-4 items-center">
             @csrf
-            <input type="file" name="file" class="form-control w-auto" accept=".xml" required>
-            <button type="submit" class="btn btn-success">Import XML</button>
-        </form>
+            <input type="text" name="first_name" class="border border-gray-300 rounded-md p-2 w-full md:w-auto" placeholder="First Name" required>
+            <input type="text" name="last_name" class="border border-gray-300 rounded-md p-2 w-full md:w-auto" placeholder="Last Name">
+            <input type="text" name="phone_number" class="border border-gray-300 rounded-md p-2 w-full md:w-auto" placeholder="Phone Number" required>
 
-        <a href="{{ route('contacts.export.xml') }}" class="btn btn-secondary mt-3">Download Sample XML</a>
+            <button type="submit" class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition">
+                Add Contact
+            </button>
+        </form>
     </div>
+
 </div>
 
 @endsection

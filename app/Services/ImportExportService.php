@@ -18,18 +18,6 @@ class ImportExportService
 
     public function exportXML()
     {
-        // $contacts = $this->contactRepository->getAll();
-        // $xml = new SimpleXMLElement('<contacts/>');
-
-        // foreach ($contacts as $contact) {
-        //     $contactXML = $xml->addChild('contact');
-        //     $contactXML->addChild('first_name', $contact->first_name);
-        //     $contactXML->addChild('last_name', $contact->last_name);
-        //     $contactXML->addChild('phone', $contact->phone);
-        // }
-
-        // $fileName = 'contacts_' . now()->format('YmdHis') . '.xml';
-        // Storage::put("public/exports/{$fileName}", $xml->asXML());
 
 
         $contacts = [
@@ -49,42 +37,51 @@ class ImportExportService
         Storage::put("$fileName", $xml->asXML());
         return response()->download(storage_path("app/public/$fileName"));
 
-
-        // return response()->download(storage_path("app/public/exports/{$fileName}"))->deleteFileAfterSend();
     }
+
 
     public function importXML($file)
-    {
-        $xmlContent = simplexml_load_file($file);
-        $data = [];
-        $failedRecords = [];
+	{
+		$xmlContent = simplexml_load_file($file);
+	    $failedRecords = [];
+	    $successCount = 0;
 
-        foreach ($xmlContent->contact as $contact) {
-            $firstName = (string) $contact->first_name;
-            $lastName = (string) $contact->last_name;
-            $phone = (string) $contact->phone;
+	    foreach ($xmlContent->contact as $contact) {
+	        $name = (string) $contact->name;
+	        $phone = (string) $contact->phone;
 
-            if (empty($firstName) || empty($lastName) || empty($phone)) {
-                $failedRecords[] = $contact;
-                continue;
-            }
+	        if (empty($name) || empty($phone)) {
 
-            $data[] = [
-                'first_name' => $firstName,
-                'last_name' => $lastName,
-                'phone' => $phone,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-        }
+	            $failedRecords[] = [
+	                'contact' => [
+		                'name' => $name,
+		                'phone' => $phone
+		            ],
+	                'error' => 'Missing required fields (First Name, Last Name, or Phone).'
+	            ];
+	            continue;
+	        }
 
-        if (!empty($data)) {
-            $this->contactRepository->bulkInsert($data);
-        }
+	        // Call repository method to insert, checking for duplicates
+	        $inserted = $this->contactRepository->bulkInsert($name, $phone);
 
-        return back()->with([
-            'success' => count($data) . ' contacts imported successfully.',
-            'errors' => count($failedRecords) . ' contacts failed to import.'
-        ]);
-    }
+	        if ($inserted) {
+	            $successCount++;
+	        } else {
+	        	$failedRecords[] = [
+                	'contact' => [
+		                'name' => $name,
+		                'phone' => $phone
+		            ],
+	                'error' => 'Duplicate contact with the same phone number exists.'
+	            ];
+	        }
+	    }
+	    return back()->with([
+	        'success' => $successCount . ' contacts imported successfully.',
+	        'errors' => count($failedRecords) . ' contacts failed to import.',
+        	'failed_records' => $failedRecords,
+	    ]);
+
+	}
 }
