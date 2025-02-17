@@ -32,7 +32,9 @@ class ContactRepository implements ContactRepositoryInterface
 
     public function delete($id)
     {
-        return Contact::destroy($id);
+        $contact = Contact::findOrFail($id);
+        return $contact->delete();
+        
     }
 
     public function bulkInsert($name, $phone)

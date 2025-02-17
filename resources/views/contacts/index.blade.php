@@ -44,7 +44,7 @@
 
 
     {{-- Import & Export Contacts --}}
-    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+    <div class="bg-white shadow-md rounded-lg p-6 mb-6 align-left">
         <h4 class="text-lg font-semibold mb-4">Import & Export Contacts</h4>
         <div class="flex flex-wrap gap-4 items-center">
             <form action="{{ route('contacts.import.xml') }}" method="POST" enctype="multipart/form-data" class="flex items-center gap-2">
@@ -58,7 +58,13 @@
             <a href="{{ route('contacts.export.xml') }}" class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition">
                 Download Sample XML
             </a>
+
+            <a href="{{ route('contacts.create') }}" class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition">
+                Create Contact
+            </a>
         </div>
+
+        
     </div>
 
     {{-- Contact List Table --}}
@@ -81,14 +87,24 @@
                             <td class="border border-gray-300 px-4 py-2">{{ $contact->first_name }} {{ $contact->last_name }}</td>
                             <td class="border border-gray-300 px-4 py-2">{{ $contact->phone_number }}</td>
                             <td class="border border-gray-300 px-4 py-2 text-center">
-                                <form action="{{ route('contacts.destroy', $contact->id) }}" method="POST" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
-                                        onclick="return confirm('Are you sure?')">
-                                        Delete
-                                    </button>
-                                </form>
+                                <div class="flex justify-center space-x-2">
+                                    <a href="{{ route('contacts.show', $contact->id) }}" 
+                                       class="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600">
+                                        View
+                                    </a>
+                                    <a href="{{ route('contacts.edit', $contact->id) }}" 
+                                       class="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600">
+                                        Edit
+                                    </a>
+                                    <form action="{{ route('contacts.destroy', $contact->id) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+                                            onclick="return confirm('Are you sure?')">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @endforeach
@@ -99,21 +115,6 @@
         <div class="mt-4">
             {{ $contacts->links() }}
         </div>
-    </div>
-
-        {{-- Add Contact Form --}}
-    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
-        <h4 class="text-lg font-semibold mb-4">Add New Contact</h4>
-        <form action="{{ route('contacts.store') }}" method="POST" class="flex flex-wrap gap-4 items-center">
-            @csrf
-            <input type="text" name="first_name" class="border border-gray-300 rounded-md p-2 w-full md:w-auto" placeholder="First Name" required>
-            <input type="text" name="last_name" class="border border-gray-300 rounded-md p-2 w-full md:w-auto" placeholder="Last Name">
-            <input type="text" name="phone_number" class="border border-gray-300 rounded-md p-2 w-full md:w-auto" placeholder="Phone Number" required>
-
-            <button type="submit" class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition">
-                Add Contact
-            </button>
-        </form>
     </div>
 
 </div>

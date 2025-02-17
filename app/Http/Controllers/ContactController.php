@@ -19,6 +19,10 @@ class ContactController extends Controller
         $contacts = $this->contactService->getAllContacts();
         return view('contacts.index', compact('contacts'));
     }
+    public function create()
+    {
+        return view('contacts.create');
+    }
 
     public function store(Request $request)
     {
@@ -31,4 +35,23 @@ class ContactController extends Controller
         $this->contactService->deleteContact($id);
         return redirect()->route('dashboard')->with('success', 'Contact deleted successfully.');
     }
+
+    public function show($id)
+    {
+        $contact = $this->contactService->getContactById($id);
+        return view('contacts.show', compact('contact'));
+    }
+
+    public function edit($id)
+    {
+        $contact = $this->contactService->getContactById($id);
+        return view('contacts.edit', compact('contact'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $this->contactService->updateContact($id, $request->all());
+        return redirect()->route('dashboard')->with('success', 'Contact updated successfully.');
+    }
+
 }

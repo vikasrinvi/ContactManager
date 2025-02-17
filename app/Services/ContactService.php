@@ -40,5 +40,32 @@ class ContactService
         return $this->contactRepository->delete($id);
     }
 
+    private function validateContact($data, $id = null)
+    {
+        $rules = [
+            'first_name'   => 'required|string|max:255',
+            'last_name'    => 'nullable|string|max:255',
+            'phone_number' => 'required|string|max:20|unique:contacts,phone_number,' . $id,
+        ];
+
+        $validator = Validator::make($data, $rules);
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+    }
+
+    public function updateContact($id, $data)
+    {
+        $this->validateContact($data, $id);
+
+        return $this->contactRepository->update($id, $data);
+    }
+
+    public function getContactById($id)
+    {
+        return $this->contactRepository->findById($id);
+    }
+
 
 }
