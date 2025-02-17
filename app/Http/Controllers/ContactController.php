@@ -2,49 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Contact;
+use App\Services\ContactService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class ContactController extends Controller
 {
+    protected $contactService;
+
+    public function __construct(ContactService $contactService)
+    {
+        $this->contactService = $contactService;
+    }
+
     public function index()
     {
-        return response()->json(Contact::all());
+        $contacts = $this->contactService->getAllContacts();
+        return view('contacts.index', compact('contacts'));
     }
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20|unique:contacts',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
-        }
-
-        $contact = Contact::create($request->all());
-        return response()->json($contact, 201);
-    }
-
-    public function show($id)
-    {
-        return response()->json(Contact::findOrFail($id));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $contact = Contact::findOrFail($id);
-        $contact->update($request->all());
-        return response()->json($contact);
+        $this->contactService->createContact($request->all());
+        return redirect()->route('contacts.index')->with('success', 'Contact added successfully.');
     }
 
     public function destroy($id)
     {
-        Contact::findOrFail($id)->delete();
-        return response()->json(['message' => 'Contact deleted']);
+        $this->contactService->deleteContact($id);
+        return redirect()->route('contacts.index')->with('success', 'Contact deleted successfully.');
     }
 }
-
